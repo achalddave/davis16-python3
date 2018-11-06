@@ -80,4 +80,4 @@ if __name__ == '__main__':
 	for row,measure in zip(X,['J(M)','J(O)','J(D)','F(M)','F(O)','F(D)','T(M)']):
 		table.add_row([measure]+["{: .3f}".format(r) for r in row])
 
-	print "\n" + str(table) + "\n"
+	print("\n" + str(table) + "\n")

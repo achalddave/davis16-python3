@@ -60,8 +60,7 @@ if __name__ == '__main__':
 	for attribute in args.attributes:
 		# Filter sequences tagged with `attribute`
 		log.info("Filtering sequences with attribute: %s"%attribute)
-		sequences = filter(
-				lambda s: attribute in s.attributes,db_sequences)
+		sequences = [s for s in db_sequences if attribute in s.attributes]
 
 		db_eval_dict = db_read_eval(sequence=[s.name for s in sequences],
 				measure=args.measure,raw_eval=False)
@@ -70,8 +69,8 @@ if __name__ == '__main__':
 
 		R = []
 		for t in db_techniques:
-			R.append(np.vstack(db_eval_dict[t.name][
-				args.measure].values())[:,statistics_to_id[args.statistic]])
+			R.append(np.vstack(list(db_eval_dict[t.name][
+				args.measure].values()))[:,statistics_to_id[args.statistic]])
 
 		A.append(np.average(np.array(R).T,axis=0))
 
@@ -82,4 +81,4 @@ if __name__ == '__main__':
 		table.add_row([attr] + \
 				['{: .2f}'.format(np.round(r,2)) for r in row])
 
-	print "\n" + str(table) + "\n"
+	print("\n" + str(table) + "\n")

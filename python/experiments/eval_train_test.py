@@ -60,8 +60,7 @@ if __name__ == '__main__':
 		log.info("Filtering techniques in: %s"%(t_set))
 		# Filter sequences tagged with set=`t_set`
 		X = []
-		db_sequences = filter(
-				lambda s: t_set == s.set ,db_info.sequences)
+		db_sequences = [s for s in db_info.sequences if t_set == s.set]
 		for s in db_sequences:
 			X.append([1 if attr in s.attributes else 0for attr in attributes ])
 
@@ -74,25 +73,25 @@ if __name__ == '__main__':
 
 		R = []
 		for t in db_techniques:
-			R.append(np.vstack(db_eval_dict[t.name][
-				args.measure].values())[:,statistics_to_id[args.statistic]])
+			R.append(np.vstack(list(db_eval_dict[t.name][
+				args.measure].values()))[:,statistics_to_id[args.statistic]])
 
 		S.append(np.average(np.array(R).T,axis=0))
 
-	print "\nAttributes Distribution"
+	print("\nAttributes Distribution")
 
 	table = ptable(["Set"] + attributes)
 	for attr,row in zip(db_info.sets,distr):
 		table.add_row([attr] + \
 				['{: .2f}'.format(np.round(r,2)) for r in row])
-	print table
+	print(table)
 
 	table = ptable(["Set"] +
 			[t.name for t in db_techniques])
 
-	print "\nEvaluation (%s)"%args.measure
+	print("\nEvaluation (%s)"%args.measure)
 	for attr,row in zip(db_info.sets,S):
 		table.add_row([attr] + \
 				['{: .2f}'.format(np.round(r,2)) for r in row])
 
-	print table
+	print(table)

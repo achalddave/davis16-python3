@@ -60,7 +60,7 @@ if __name__ == '__main__':
 		technique_table[t.name].year       = t.year
 		table.add_row([t.name,t.title,t.authors[0], t.conference,t.year])
 
-	print "\n%s\n"%str(table)
+	print("\n%s\n"%str(table))
 
 	if args.output is not None:
 		log.info("Saving list of techniques in: %s"%args.output)

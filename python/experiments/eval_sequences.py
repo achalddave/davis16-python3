@@ -61,8 +61,8 @@ if __name__ == '__main__':
 
 	R = []
 	for t in db_techniques:
-		R.append(np.vstack(db_eval_dict[t.name][
-			args.measure].values())[:,statistics_to_id[args.statistic]])
+		R.append(np.vstack(list(db_eval_dict[t.name][
+			args.measure].values()))[:,statistics_to_id[args.statistic]])
 
 	R = np.array(R).T
 
@@ -76,4 +76,4 @@ if __name__ == '__main__':
 	table.add_row(["Average"] + ['{: .3f}'.format(r)
 		for r in np.average(R,axis=0)])
 
-	print "\n" + str(table) + "\n"
+	print("\n" + str(table) + "\n")

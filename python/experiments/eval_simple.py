@@ -49,4 +49,4 @@ if __name__ == '__main__':
 	table = ptable(['Sequence']+['Jm','Jo','Jt'])
 	table.add_row([sequence_name]+["{: .3f}".format(f) for f in [Jm,Jo,Jt]])
 
-	print "\n" + str(table)
+	print("\n" + str(table))

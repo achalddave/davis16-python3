@@ -93,8 +93,7 @@ class DAVISSegmentationLoader(object):
 				load_func=_load_annotation)
 
 		#assert len(self._masks) != 0 and len(self._images) != 0
-		masks_frames = map(lambda fn:
-				int(os.path.splitext(os.path.basename(fn))[0]),self._masks.files)
+		masks_frames = [int(os.path.splitext(os.path.basename(fn))[0]) for fn in self._masks.files]
 
 		# Loading the ground-truth annotations
 		if masks_dir is None:
@@ -123,8 +122,7 @@ class DAVISSegmentationLoader(object):
 				self._bbs.append((tl[0],tl[1],br[0],br[1]))
 
 		# FINAL SANITY CHECK
-		image_frames = map(lambda fn:
-				int(os.path.splitext(os.path.basename(fn))[0]),self._images.files)
+		image_frames = [int(os.path.splitext(os.path.basename(fn))[0]) for fn in self._images.files]
 
 		assert np.allclose(image_frames,masks_frames)
 
@@ -144,7 +142,7 @@ class DAVISSegmentationLoader(object):
 		if type(n) is int:
 			n = slice(n,n+1) # Cast to slice
 
-		fidx = range(len(self))[n]
+		fidx = list(range(len(self)))[n]
 
 		# A slice object was provided.
 		new_ic				 = copy.copy(self)
@@ -219,7 +217,7 @@ class DAVISAnnotationLoader(DAVISSegmentationLoader):
 			X = np.array([np.nan]+[eval_func(an,sg) for an,sg
 					in zip(annotations,segmentation)] + [np.nan])
 
-		from utils import db_statistics
+		from .utils import db_statistics
 		M,O,D = db_statistics(X)
 
 		if measure == 'T': O = D = np.nan
@@ -249,4 +247,4 @@ class DAVISAnnotationLoader(DAVISSegmentationLoader):
 		elif measure=='T':
 			return self._eval(db_segmentation,db_eval_t_stab,measure)
 		else:
-			raise Exception, "Unknown measure=[%s]. Valid options are measure={J,F,T}"%measure
+			raise Exception("Unknown measure=[%s]. Valid options are measure={J,F,T}"%measure)

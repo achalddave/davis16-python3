@@ -19,7 +19,7 @@ from davis.parallel  import Parallel,delayed
 from collections     import defaultdict,OrderedDict
 
 from davis  import cfg,log,Timer
-from loader import DAVISAnnotationLoader,DAVISSegmentationLoader
+from .loader import DAVISAnnotationLoader,DAVISSegmentationLoader
 
 def db_statistics(per_frame_values):
 
@@ -87,8 +87,7 @@ def db_eval_sequence(technique,sequence,inputdir,metrics=None):
 	else:
 		F,f_M,f_O,f_D = [np.nan],np.nan,np.nan,np.nan
 
-	db_sequences_t_eval = map(lambda s: s.name if s.eval_t else None,
-			db_read_sequences())
+	db_sequences_t_eval = [s.name if s.eval_t else None for s in db_read_sequences()]
 
 	if sequence in db_sequences_t_eval and (metrics is None or 'T' in metrics):
 		T,t_M,_,_ = db_sequence.eval(db_segmentation,'T')
@@ -126,8 +125,8 @@ def db_eval(techniques,sequences,inputdir=cfg.PATH.SEGMENTATION_DIR,metrics=None
 		timer.tic()
 
 		J,j_M,j_O,j_D,F,f_M,f_O,f_D,T,t_M = \
-				 zip(*Parallel(n_jobs=cfg.N_JOBS)(delayed(db_eval_sequence)(
-			technique,sequence,inputdir,metrics) for sequence in sequences))
+				 list(zip(*Parallel(n_jobs=cfg.N_JOBS)(delayed(db_eval_sequence)(
+			technique,sequence,inputdir,metrics) for sequence in sequences)))
 		log.info('Processing time: "%.3f"'%timer.toc())
 
 		# STORE RAW EVALUATION
@@ -152,8 +151,7 @@ def db_read_benchmark(db_name=cfg.FILES.DB_BENCHMARK):
 	with open(cfg.FILES.DB_BENCHMARK,'r') as f:
 		db_benchmark = edict(yaml.load(f.read()))
 		if cfg.EVAL_SET == 'paper':
-			db_benchmark['techniques'] = filter(
-					lambda technique: technique.eval_set=='paper',db_benchmark['techniques'])
+			db_benchmark['techniques'] = [technique for technique in db_benchmark['techniques'] if technique.eval_set=='paper']
 		return db_benchmark
 
 def db_read_sequences():
@@ -234,12 +232,12 @@ def db_save_eval(db_eval_dict,outputdir=cfg.PATH.EVAL_DIR):
 	"""
 
 
-	for technique in db_eval_dict.keys():
+	for technique in list(db_eval_dict.keys()):
 		outfilename = osp.join(outputdir,technique + ".h5")
 		log.info("Saving evaluation in: %s"%outfilename)
 		db_hdf5 = h5py.File(outfilename,'w')
-		for measure in db_eval_dict[technique].keys():
-			for sequence,val in db_eval_dict[technique][measure].iteritems():
+		for measure in list(db_eval_dict[technique].keys()):
+			for sequence,val in db_eval_dict[technique][measure].items():
 				db_hdf5["%s/%s"%(measure,sequence)] = val
 
 		db_hdf5.close()
@@ -261,7 +259,7 @@ def db_save_techniques(db_eval_dict,filename=cfg.FILES.DB_BENCHMARK):
 
 
 			def gmr(arg):
-				return np.round(np.nanmean(arg.values(),axis=0),3).tolist()
+				return np.round(np.nanmean(list(arg.values()),axis=0),3).tolist()
 
 			db_techniques['techniques'].append(
 					{
@@ -284,8 +282,8 @@ def db_eval_view(db_eval_dict,technique,
 	table = ptable(["Sequence"] + ['J(M)','J(O)','J(D)','F(M)','F(O)','F(D)','T(M)'])
 
 	X = []
-	for key,values in db_eval_dict[technique].iteritems():
-		X.append(db_eval_dict[technique][key].values())
+	for key,values in db_eval_dict[technique].items():
+		X.append(list(db_eval_dict[technique][key].values()))
 
 	X = np.hstack(X)[:,:7]
 	if not summary:
@@ -297,10 +295,10 @@ def db_eval_view(db_eval_dict,technique,
 	set_ids = [seq_id for seq_id,seq in enumerate(db_sequences)
 			if eval_set == 'all' or seq.set == eval_set]
 
-	print set_ids
+	print(set_ids)
 
 	table.add_row(['Average'] + ["{: .3f}".format(n)
 		for n in np.nanmean(X[set_ids],axis=0)])
 
-	print "\n" + str(table) + "\n"
+	print("\n" + str(table) + "\n")
 	return str(table)
